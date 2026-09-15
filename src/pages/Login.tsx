@@ -78,9 +78,13 @@ export default function Login() {
     <div style={page}>
       <div style={card}>
         <div style={hero}>
-          <div style={logoWrap}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
+      <div style={logoWrap}>
+<img
+    src="/icon.png"
+    alt="UniFiX"
+    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+  />
+</div>
         </div>
         <h1 style={h1}>Welcome to UniFiX</h1>
         <p style={sub}>Sign in to your account</p>
@@ -133,7 +137,7 @@ export default function Login() {
 const page: React.CSSProperties = { minHeight: '100dvh', background: '#f8fafc', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' };
 const card: React.CSSProperties = { width: '100%', maxWidth: 480, padding: '0 24px 40px', background: '#fff', minHeight: '100dvh' };
 const hero: React.CSSProperties = { display: 'flex', justifyContent: 'center', paddingTop: 60, paddingBottom: 24 };
-const logoWrap: React.CSSProperties = { width: 90, height: 90, borderRadius: 50, background: '#f0fdf4', border: '2px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const logoWrap: React.CSSProperties = { width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', background: '#f0fdf4', border: '2px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const h1: React.CSSProperties = { fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 4, letterSpacing: -0.3 };
 const sub: React.CSSProperties = { fontSize: 14, color: '#64748b', marginBottom: 24 };
 const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8 };
