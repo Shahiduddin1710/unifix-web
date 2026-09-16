@@ -106,9 +106,8 @@ export default function ProfileSection({ userData, onLogout, hasPendingIdCard, o
     catch (err: any) { alert(err.message || 'Failed.'); }
   };
 
-  const handleLogoutAll = async () => {
-    if (!window.confirm('This will end all active sessions on all devices.')) return;
-    try { await authAPI.logoutAllDevices(); onLogout(); } catch {}
+  const handleLogoutAll = () => {
+    onLogout();
   };
 
   if (screen === 'personalInfo') return (
@@ -242,14 +241,18 @@ export default function ProfileSection({ userData, onLogout, hasPendingIdCard, o
     <div style={scrollWrap}>
       <div style={subHeader}><button onClick={back} style={backBtn}><ArrowLeft size={18} /></button><span style={subTitle}>Legal</span></div>
       <div style={{ maxWidth: 560 }}>
-        {[{ label: 'Terms & Conditions', icon: <Info size={18} color="#0369a1" />, bg: '#f0f9ff' }, { label: 'Privacy Policy', icon: <Shield size={18} color="#0369a1" />, bg: '#f0f9ff' }, { label: 'Copyright', icon: <Info size={18} color="#0369a1" />, bg: '#f0f9ff' }].map(item => (
-          <div key={item.label} style={menuCard}>
+        {[
+          { label: 'Terms & Conditions', icon: <Info size={18} color="#0369a1" />, bg: '#f0f9ff', href: 'https://unifix-app.onrender.com/terms' },
+          { label: 'Privacy Policy', icon: <Shield size={18} color="#0369a1" />, bg: '#f0f9ff', href: 'https://unifix-app.onrender.com/privacy' },
+          { label: 'Copyright Policy', icon: <Info size={18} color="#0369a1" />, bg: '#f0f9ff', href: 'https://unifix-app.onrender.com/copyright' },
+        ].map(item => (
+          <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" style={{ ...menuCard, textDecoration: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
               <div style={{ ...menuIcon, background: item.bg }}>{item.icon}</div>
               <span style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{item.label}</span>
             </div>
             <ChevronRight size={16} color="#94a3b8" />
-          </div>
+          </a>
         ))}
       </div>
     </div>

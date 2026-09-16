@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../utils/api';
-import { Eye, EyeOff, GraduationCap, User, Wrench, ArrowLeft } from '../components/Icons';
+import { Eye, EyeOff, GraduationCap, User, ArrowLeft } from '../components/Icons';
 
 type Role = 'student' | 'teacher' | 'staff';
 
 const ROLES: { value: Role; label: string; icon: React.ReactNode; desc: string }[] = [
   { value: 'student', label: 'Student', icon: <GraduationCap size={28} color="#16a34a" />, desc: 'Submit campus repair requests' },
   { value: 'teacher', label: 'Teacher', icon: <User size={28} color="#2563eb" />, desc: 'Must use @vcet.edu.in email' },
-  { value: 'staff', label: 'Staff', icon: <Wrench size={28} color="#7c3aed" />, desc: 'Any valid email address' },
 ];
 
 export default function Signup() {
@@ -92,7 +91,7 @@ export default function Signup() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20 }}>
           <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: 20, height: 20, accentColor: '#16a34a' }} />
-          <Link to="/legal" style={{ fontSize: 13, color: '#16a34a', fontWeight: 700 }}>Terms & Conditions</Link>
+          <a href="https://unifix-app.onrender.com/terms" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#16a34a', fontWeight: 700 }}>Terms & Conditions</a>
         </div>
 
         {error && <div style={errBox}>{error}</div>}
@@ -101,6 +100,12 @@ export default function Signup() {
         <div style={{ textAlign: 'center', marginTop: 20 }}>
           <span style={{ fontSize: 14, color: '#64748b' }}>Already have an account? </span>
           <Link to="/login" style={{ fontSize: 14, color: '#16a34a', fontWeight: 700 }}>Log in</Link>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 24 }}>
+          <a href="https://unifix-app.onrender.com/terms" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'none' }}>Terms & Conditions</a>
+          <span style={{ fontSize: 12, color: '#cbd5e1' }}>·</span>
+          <a href="https://unifix-app.onrender.com/privacy" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'none' }}>Privacy Policy</a>
         </div>
       </div>
     </div>

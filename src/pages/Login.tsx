@@ -127,7 +127,7 @@ export default function Login() {
         </button>
 
         <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#94a3b8' }}>
-          By continuing, you agree to our <Link to="/legal" style={{ color: '#16a34a', fontWeight: 700 }}>Terms & Conditions</Link>
+          By continuing, you agree to our <a href="https://unifix-app.onrender.com/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#16a34a', fontWeight: 700 }}>Terms & Conditions</a>
         </div>
       </div>
     </div>

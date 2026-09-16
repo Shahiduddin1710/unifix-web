@@ -96,7 +96,16 @@ export default function Dashboard() {
     setRefreshing(false);
   }, [fetchComplaints, fetchLostFound]);
 
-  const handleLogout = useCallback(async () => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  const handleLogout = useCallback(() => {
+    setShowLogoutModal(true);
+  }, []);
+
+  const confirmLogout = useCallback(async () => {
+    if (logoutLoading) return;
+    setLogoutLoading(true);
     try {
       const token = await getValidAccessToken();
       if (token) await cleanupWebNotifications(token);
@@ -104,8 +113,7 @@ export default function Dashboard() {
     try { await authAPI.logoutAllDevices(); } catch {}
     clearAuthTokens();
     nav('/login');
-  }, [nav]);
-
+  }, [nav, logoutLoading]);
   const firstName = (userData?.fullName?.split(' ')[0] ?? userData?.name?.split(' ')[0] ?? 'User');
 
   if (successTicketId) return (
@@ -130,6 +138,13 @@ export default function Dashboard() {
   return (
     <div style={outerShell}>
       {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          loading={logoutLoading}
+          onCancel={() => { if (!logoutLoading) setShowLogoutModal(false); }}
+          onConfirm={confirmLogout}
+        />
+      )}
       <div style={innerCard}>
         <SideNav active={activeTab} onChange={setActiveTab} firstName={firstName} userData={userData} />
         <div style={root}>
@@ -241,6 +256,96 @@ function SideNav({ active, onChange, firstName, userData }: { active: Tab; onCha
           );
         })}
       </nav>
+    </div>
+  );
+}
+
+function LogoutConfirmModal({ onCancel, onConfirm, loading }: { onCancel: () => void; onConfirm: () => void; loading: boolean }) {
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const confirmRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    confirmRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !loading) onCancel(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [loading, onCancel]);
+
+  return (
+    <div
+      role="presentation"
+      onClick={(e) => { if (e.target === e.currentTarget && !loading) onCancel(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(15,23,42,0.45)',
+        backdropFilter: 'blur(2px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '0 24px',
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="logout-title"
+        aria-describedby="logout-desc"
+        style={{
+          background: '#fff',
+          borderRadius: 24,
+          width: '100%',
+          maxWidth: 360,
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(15,23,42,0.18)',
+        }}
+      >
+        <div style={{ padding: '28px 24px 20px', textAlign: 'center' }}>
+          <div id="logout-title" style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>
+            Log Out
+          </div>
+          <div id="logout-desc" style={{ fontSize: 14, color: '#64748b', lineHeight: 1.55 }}>
+            Are you sure you want to log out?
+          </div>
+        </div>
+        <div style={{ height: 1, background: '#f1f5f9' }} />
+        <div style={{ display: 'flex' }}>
+          <button
+            ref={cancelRef}
+            onClick={() => { if (!loading) onCancel(); }}
+            disabled={loading}
+            style={{
+              flex: 1,
+              padding: '17px 0',
+              background: 'none',
+              border: 'none',
+              borderRight: '1px solid #f1f5f9',
+              fontSize: 15,
+              fontWeight: 600,
+              color: '#64748b',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            ref={confirmRef}
+            onClick={onConfirm}
+            disabled={loading}
+            style={{
+              flex: 1,
+              padding: '17px 0',
+              background: 'none',
+              border: 'none',
+              fontSize: 15,
+              fontWeight: 700,
+              color: loading ? '#fca5a5' : '#dc2626',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {loading ? 'Logging out...' : 'Log Out'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
