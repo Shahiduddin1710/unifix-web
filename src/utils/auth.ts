@@ -36,34 +36,65 @@ export function loadUser(): any | null {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
-export async function getValidAccessToken(): Promise<string | null> {
-  const token = getAccessToken();
-  if (!token) return null;
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1]));
-    if (payload.exp && payload.exp - Math.floor(Date.now() / 1000) > 60) return token;
-  } catch {
-    return token;
-  }
+let _refreshPromise: Promise<string | null> | null = null;
+
+async function _doRefresh(): Promise<string | null> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
+  if (!refreshToken) {
+    _refreshPromise = null;
+    return null;
+  }
   try {
     const res = await fetch(`${BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
-    if (!res.ok) { clearAuthTokens(); return null; }
+    if (res.status === 401 || res.status === 403) {
+      clearAuthTokens();
+      _refreshPromise = null;
+      return null;
+    }
+    if (!res.ok) {
+      _refreshPromise = null;
+      return null;
+    }
     const data = await res.json();
     const newToken = data?.token;
     const newRefresh = data?.refreshToken;
-    if (!newToken) { clearAuthTokens(); return null; }
+    if (!newToken) {
+      clearAuthTokens();
+      _refreshPromise = null;
+      return null;
+    }
     setAccessToken(newToken);
     if (newRefresh) setRefreshToken(newRefresh);
+    _refreshPromise = null;
     return newToken;
   } catch {
+    _refreshPromise = null;
     return null;
   }
+}
+
+export async function getValidAccessToken(): Promise<string | null> {
+  const token = getAccessToken();
+  if (!token) {
+    if (!getRefreshToken()) return null;
+    if (!_refreshPromise) _refreshPromise = _doRefresh();
+    return _refreshPromise;
+  }
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      if (!_refreshPromise) _refreshPromise = _doRefresh();
+      return _refreshPromise;
+    }
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp - Math.floor(Date.now() / 1000) > 60) return token;
+  } catch {
+    return token;
+  }
+  if (!_refreshPromise) _refreshPromise = _doRefresh();
+  return _refreshPromise;
 }

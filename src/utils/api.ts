@@ -2,13 +2,15 @@ import { getValidAccessToken, clearAuthTokens } from './auth';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-let refreshing: Promise<string> | null = null;
-
 const request = async (method: string, endpoint: string, body?: object, requiresAuth = true): Promise<any> => {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (requiresAuth) {
     const token = await getValidAccessToken();
-    if (!token) { clearAuthTokens(); window.location.href = '/login'; throw new Error('SESSION_EXPIRED'); }
+    if (!token) {
+      clearAuthTokens();
+      window.location.href = '/login';
+      throw new Error('SESSION_EXPIRED');
+    }
     headers['Authorization'] = `Bearer ${token}`;
   }
   const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -18,7 +20,11 @@ const request = async (method: string, endpoint: string, body?: object, requires
   });
   const contentType = res.headers.get('content-type');
   const data = contentType?.includes('application/json') ? await res.json() : { message: await res.text() };
-  if (res.status === 401 && requiresAuth) { clearAuthTokens(); window.location.href = '/login'; throw new Error('SESSION_EXPIRED'); }
+  if (res.status === 401 && requiresAuth) {
+    clearAuthTokens();
+    window.location.href = '/login';
+    throw new Error('SESSION_EXPIRED');
+  }
   if (!res.ok) {
     const err: any = new Error(data?.error || data?.message || 'Request failed');
     err.code = data?.code ?? null;
