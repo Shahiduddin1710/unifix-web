@@ -169,9 +169,8 @@ export default function LostFoundSection({ feedItems, lostReports, userLostRepor
                 <div style={emptyTitle}>You haven't reported any lost items</div>
                 <button onClick={() => setShowLostModal(true)} style={addItemBtn}>Post Lost Report</button>
               </div>
-            ) : (<>
+            ) : (            <>
               {userLostReports.map(item => <LFCard key={item.id} item={item} />)}
-              <button onClick={() => setShowLostModal(true)} style={{ ...addItemBtn, gridColumn: '1 / -1' }}>+ Post Lost Report</button>
             </>)
           )}
           {activeTab === 'lost-history' && (

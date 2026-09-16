@@ -5,6 +5,24 @@ import { Camera, User, Settings, Info, Lock, LogOut, Trash2, Shield, Phone, Eye,
 
 type Screen = 'main' | 'personalInfo' | 'changePassword' | 'reportSecurity' | 'legal' | 'settings';
 interface Props { userData: any; onLogout: () => void; hasPendingIdCard: boolean; onIdCardUpdate: () => void; }
+const useIsDesktop = () => {
+  const [isDesktop, setIsDesktop] = React.useState(typeof window !== 'undefined' && window.innerWidth >= 1024);
+  React.useEffect(() => {
+    const h = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return isDesktop;
+};
+const useIsTablet = () => {
+  const [isTablet, setIsTablet] = React.useState(typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024);
+  React.useEffect(() => {
+    const h = () => setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return isTablet;
+};
 
 const SECURITY_TYPES = ['Unauthorized Access', 'Account Compromise', 'Data Privacy Concern', 'Suspicious Activity', 'Password Issue', 'Other'];
 
@@ -27,6 +45,8 @@ export default function ProfileSection({ userData, onLogout, hasPendingIdCard, o
   const [secLoading, setSecLoading] = useState(false); const [secError, setSecError] = useState(''); const [secSuccess, setSecSuccess] = useState('');
   const [idCardUploading, setIdCardUploading] = useState(false); const [idCardError, setIdCardError] = useState(''); const [idCardSuccess, setIdCardSuccess] = useState('');
 
+  const isDesktop = useIsDesktop();
+  const isTablet = useIsTablet();
   const isGoogle = userData?.authProvider === 'google';
   const firstName = useMemo(() => (userData?.fullName?.split(' ')[0] ?? 'User'), [userData]);
   const idCardUrl = useMemo(() => userData?.studentIdCardUrl || userData?.teacherIdCardUrl || null, [userData]);
@@ -235,54 +255,105 @@ export default function ProfileSection({ userData, onLogout, hasPendingIdCard, o
     </div>
   );
 
+  const avatarSize = isDesktop ? 112 : 90;
+
   return (
-    <div style={scrollWrap}>
-      <div style={profileHero}>
-        <label style={{ position: 'relative', cursor: 'pointer' }}>
-          {userData?.photoUrl ? (
-            <img src={userData.photoUrl} alt="avatar" style={{ width: 90, height: 90, borderRadius: 45, border: '2px solid #16a34a', objectFit: 'cover' }} />
-          ) : (
-            <div style={avatar}><span style={{ fontSize: 32, fontWeight: 800, color: '#16a34a' }}>{avatarLetters}</span></div>
-          )}
-          <div style={cameraBtn}>{photoUploading ? <span style={{ fontSize: 10, color: '#fff' }}>...</span> : <Camera size={14} color="#fff" />}</div>
-          <input type="file" accept="image/*" onChange={handlePickPhoto} style={{ display: 'none' }} />
-        </label>
-        <div style={profileName}>{userData?.fullName ?? '—'}</div>
-        <div style={roleBadge}><GraduationCap size={14} color="#16a34a" /> {userData?.role === 'student' ? 'Student' : 'Teacher'}</div>
-        <div style={{ fontSize: 11, color: '#94a3b8', letterSpacing: 0.5 }}>{photoUploading ? 'Uploading...' : 'Tap photo to change'}</div>
-      </div>
+    <div style={isDesktop ? { ...scrollWrap, padding: '40px 48px 100px' } : scrollWrap}>
+      <div style={{ maxWidth: isDesktop ? 896 : '100%', margin: isDesktop ? '0 auto' : undefined }}>
 
-      <div style={menuGrid}>
-        {([
-          { label: 'Personal Information', icon: <User size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => { setEditName(userData?.fullName || ''); setEditPhone(userData?.phone || ''); setProfileError(''); setProfileSuccess(''); nav('personalInfo'); } },
-          { label: 'Settings', icon: <Settings size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('settings') },
-          { label: 'Legal', icon: <Info size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('legal') },
-        ] as any[]).map(item => (
-          <div key={item.label} style={menuCard} onClick={item.action}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
-              <div style={{ ...menuIcon, background: item.bg }}>{item.icon}</div>
-              <span style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{item.label}</span>
-            </div>
-            <ChevronRight size={16} color="#94a3b8" />
-          </div>
-        ))}
-
-        {userData?.role === 'student' && (
-          <div style={{ ...menuCard, borderColor: '#fecaca' }} onClick={() => window.location.href = '/report-ragging'}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
-              <div style={{ ...menuIcon, background: '#fef2f2' }}><TriangleAlert size={18} color="#dc2626" /></div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#dc2626' }}>Report Ragging</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>Confidential · Goes directly to HOD</div>
+        <div style={isDesktop ? { ...profileHero, paddingTop: 8, paddingBottom: 32 } : profileHero}>
+          <label style={{ position: 'relative', cursor: 'pointer' }}>
+            {userData?.photoUrl ? (
+              <img src={userData.photoUrl} alt="avatar" style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, border: '2px solid #16a34a', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ ...avatar, width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}>
+                <span style={{ fontSize: isDesktop ? 38 : 32, fontWeight: 800, color: '#16a34a' }}>{avatarLetters}</span>
               </div>
-            </div>
-            <ChevronRight size={16} color="#dc2626" />
+            )}
+            <div style={cameraBtn}>{photoUploading ? <span style={{ fontSize: 10, color: '#fff' }}>...</span> : <Camera size={14} color="#fff" />}</div>
+            <input type="file" accept="image/*" onChange={handlePickPhoto} style={{ display: 'none' }} />
+          </label>
+          <div style={isDesktop ? { ...profileName, fontSize: 28, marginTop: 16 } : profileName}>{userData?.fullName ?? '—'}</div>
+          <div style={isDesktop ? { ...roleBadge, marginTop: 10, marginBottom: 10 } : roleBadge}>
+            <GraduationCap size={14} color="#16a34a" /> {userData?.role === 'student' ? 'Student' : 'Teacher'}
           </div>
-        )}
-      </div>
+          <div style={{ fontSize: 11, color: '#94a3b8', letterSpacing: 0.5 }}>{photoUploading ? 'Uploading...' : 'Tap photo to change'}</div>
+        </div>
 
-      <button onClick={onLogout} style={logoutBtn}><LogOut size={16} color="#dc2626" /> Log Out</button>
-      <div style={{ textAlign: 'center', fontSize: 11, color: '#cbd5e1', letterSpacing: 1, marginTop: 8 }}>UNIFIX PLATFORM</div>
+        <div style={isDesktop ? desktopCardSection : isTablet ? tabletCardSection : undefined}>
+          {isTablet ? (
+            <>
+              <div style={tabletCardGrid}>
+                {([
+                  { label: 'Personal Information', icon: <User size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => { setEditName(userData?.fullName || ''); setEditPhone(userData?.phone || ''); setProfileError(''); setProfileSuccess(''); nav('personalInfo'); } },
+                  { label: 'Settings', icon: <Settings size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('settings') },
+                  { label: 'Legal', icon: <Info size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('legal') },
+                ] as any[]).map(item => (
+                  <div key={item.label} style={tabletMenuCard} onClick={item.action}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, flex: 1, padding: '8px 0' }}>
+                      <div style={{ ...menuIcon, background: item.bg, width: 44, height: 44, borderRadius: 14 }}>{item.icon}</div>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', textAlign: 'center' }}>{item.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {userData?.role === 'student' && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ ...tabletMenuCard, borderColor: '#fecaca', background: 'rgba(254,242,242,0.2)' }} onClick={() => window.location.href = '/report-ragging'}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
+                      <div style={{ ...menuIcon, background: '#fef2f2' }}><TriangleAlert size={18} color="#dc2626" /></div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626' }}>Report Ragging</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>Confidential · Goes directly to HOD</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} color="#dc2626" />
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={isDesktop ? desktopCardGrid : menuGrid}>
+                {([
+                  { label: 'Personal Information', icon: <User size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => { setEditName(userData?.fullName || ''); setEditPhone(userData?.phone || ''); setProfileError(''); setProfileSuccess(''); nav('personalInfo'); } },
+                  { label: 'Settings', icon: <Settings size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('settings') },
+                  { label: 'Legal', icon: <Info size={18} color="#16a34a" />, bg: '#f0fdf4', action: () => nav('legal') },
+                ] as any[]).map(item => (
+                  <div key={item.label} style={isDesktop ? desktopMenuCard : menuCard} onClick={item.action}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
+                      <div style={{ ...menuIcon, background: item.bg }}>{item.icon}</div>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} color="#94a3b8" />
+                  </div>
+                ))}
+              </div>
+              {userData?.role === 'student' && (
+                <div style={{ marginTop: isDesktop ? 14 : 0 }}>
+                  <div style={isDesktop ? { ...desktopMenuCard, borderColor: '#fecaca', background: 'rgba(254,242,242,0.2)' } : { ...menuCard, borderColor: '#fecaca' }} onClick={() => window.location.href = '/report-ragging'}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1 }}>
+                      <div style={{ ...menuIcon, background: '#fef2f2' }}><TriangleAlert size={18} color="#dc2626" /></div>
+                      <div>
+                        <div style={{ fontSize: isDesktop ? 14 : 15, fontWeight: isDesktop ? 700 : 600, color: '#dc2626' }}>Report Ragging</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>Confidential · Goes directly to HOD</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} color="#dc2626" />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <div style={{ maxWidth: isDesktop ? 768 : isTablet ? 560 : '100%', margin: isDesktop || isTablet ? '0 auto' : undefined }}>
+          <button onClick={onLogout} style={isDesktop ? { ...logoutBtn, marginTop: 24, borderRadius: 16 } : isTablet ? { ...logoutBtn, marginTop: 16, borderRadius: 16 } : logoutBtn}>
+            <LogOut size={16} color="#dc2626" /> Log Out
+          </button>
+          <div style={{ textAlign: 'center', fontSize: 11, color: '#cbd5e1', letterSpacing: 1, marginTop: 8 }}>UNIFIX PLATFORM</div>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -319,6 +390,12 @@ const cameraBtn: React.CSSProperties = { position: 'absolute', bottom: 0, right:
 const profileName: React.CSSProperties = { fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 8, marginTop: 14 };
 const roleBadge: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 6, background: '#f0fdf4', borderRadius: 20, padding: '6px 14px', border: '1.5px solid #bbf7d0', fontSize: 13, fontWeight: 700, color: '#16a34a', marginBottom: 8 };
 const menuGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, marginBottom: 12 };
+const desktopCardSection: React.CSSProperties = { maxWidth: 768, margin: '0 auto' };
+const tabletCardSection: React.CSSProperties = { maxWidth: 560, margin: '0 auto', width: '100%' };
+const tabletCardGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 };
+const tabletMenuCard: React.CSSProperties = { background: '#fff', borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #e2e8f0', cursor: 'pointer', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' };
+const desktopCardGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 0 };
+const desktopMenuCard: React.CSSProperties = { background: '#fff', borderRadius: 16, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #e2e8f0', cursor: 'pointer', boxShadow: '0 1px 4px rgba(15,23,42,0.04)', transition: 'all 0.15s' };
 const menuCard: React.CSSProperties = { background: '#fff', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #f1f5f9', cursor: 'pointer' };
 const menuIcon: React.CSSProperties = { width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const logoutBtn: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#fff', border: '1.5px solid #fecaca', borderRadius: 14, padding: '16px 0', fontSize: 15, fontWeight: 700, color: '#dc2626', cursor: 'pointer', marginBottom: 16 };

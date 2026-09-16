@@ -170,14 +170,20 @@ const content: React.CSSProperties = { flex: 1, overflow: 'hidden', display: 'fl
 
 function SideNav({ active, onChange, firstName, userData }: { active: Tab; onChange: (t: Tab) => void; firstName: string; userData: any }) {
   const [width, setWidth] = React.useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [collapsed, setCollapsed] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
+
   React.useEffect(() => {
-    const handler = () => setWidth(window.innerWidth);
+    const handler = () => {
+      const w = window.innerWidth;
+      setWidth(w);
+      if (w < 768) setCollapsed(true);
+    };
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
   if (width < 768) return null;
-  const collapsed = width < 1024;
-  const avatarLetters = userData?.fullName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? 'U';
+
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'home', label: 'Home', icon: <IconHome /> },
     { key: 'report', label: 'Report Issue', icon: <IconReport /> },
@@ -185,30 +191,56 @@ function SideNav({ active, onChange, firstName, userData }: { active: Tab; onCha
     { key: 'complaints', label: 'Complaints', icon: <IconList /> },
     { key: 'profile', label: 'Profile', icon: <IconUser /> },
   ];
+
   return (
-    <div style={{ width: collapsed ? 72 : 240, flexShrink: 0, height: '100dvh', background: '#fff', borderRight: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, boxShadow: '2px 0 8px rgba(0,0,0,0.03)' }}>
-      <div style={{ padding: collapsed ? '24px 0 16px' : '24px 20px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 12, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f0fdf4', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <div style={{ width: collapsed ? 68 : 232, flexShrink: 0, height: '100dvh', background: '#fff', borderRight: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, boxShadow: '2px 0 10px rgba(0,0,0,0.04)', transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)', overflow: 'hidden' }}>
+
+      <div style={{ padding: '18px 0 14px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 64, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: collapsed ? 0 : 16, justifyContent: collapsed ? 'center' : 'flex-start', flex: 1, overflow: 'hidden' }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', flexShrink: 0, marginLeft: collapsed ? 'auto' : 0, marginRight: collapsed ? 'auto' : 0 }}>
+            <img src="/icon.png" alt="UniFiX" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          {!collapsed && (
+            <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', letterSpacing: -0.3, whiteSpace: 'nowrap', opacity: collapsed ? 0 : 1, transition: 'opacity 0.15s' }}>UniFiX</span>
+          )}
         </div>
-        {!collapsed && <span style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: -0.3 }}>UniFiX</span>}
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginRight: collapsed ? 'auto' : 10, marginLeft: collapsed ? 'auto' : 0, transition: 'margin 0.2s' }}
+        >
+          {collapsed ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          )}
+        </button>
       </div>
-      <nav style={{ flex: 1, padding: collapsed ? '12px 0' : '12px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+      <nav style={{ flex: 1, padding: collapsed ? '10px 8px' : '10px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', overflowX: 'hidden' }}>
         {tabs.map(t => {
           const isActive = active === t.key;
           return (
-            <button key={t.key} onClick={() => onChange(t.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: collapsed ? '12px 0' : '11px 12px', borderRadius: 10, border: 'none', background: isActive ? '#f0fdf4' : 'transparent', cursor: 'pointer', width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.15s' }}>
-              <span style={{ color: isActive ? '#16a34a' : '#94a3b8', flexShrink: 0, display: 'flex' }}>{t.icon}</span>
-              {!collapsed && <span style={{ fontSize: 14, fontWeight: isActive ? 700 : 500, color: isActive ? '#16a34a' : '#374151' }}>{t.label}</span>}
-              {!collapsed && isActive && <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: 3, background: '#16a34a' }} />}
+            <button
+              key={t.key}
+              onClick={() => onChange(t.key)}
+              title={collapsed ? t.label : undefined}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: collapsed ? '11px 0' : '10px 12px', borderRadius: 10, border: 'none', background: isActive ? '#f0fdf4' : 'transparent', cursor: 'pointer', width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.15s', position: 'relative', flexShrink: 0 }}
+            >
+              {isActive && (
+                <div style={{ position: 'absolute', left: 0, top: '20%', height: '60%', width: 3, borderRadius: '0 3px 3px 0', background: '#16a34a' }} />
+              )}
+              <span style={{ color: isActive ? '#16a34a' : '#94a3b8', flexShrink: 0, display: 'flex', transition: 'color 0.15s' }}>{t.icon}</span>
+              {!collapsed && (
+                <span style={{ fontSize: 13.5, fontWeight: isActive ? 700 : 500, color: isActive ? '#16a34a' : '#374151', whiteSpace: 'nowrap', flex: 1, textAlign: 'left' }}>{t.label}</span>
+              )}
+              {!collapsed && isActive && (
+                <div style={{ width: 6, height: 6, borderRadius: 3, background: '#16a34a', flexShrink: 0 }} />
+              )}
             </button>
           );
         })}
       </nav>
-      <div style={{ padding: collapsed ? '16px 0' : '16px 12px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 10, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f0fdf4', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#16a34a', flexShrink: 0 }}>{avatarLetters}</div>
-        {!collapsed && <div><div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{firstName}</div><div style={{ fontSize: 11, color: '#94a3b8' }}>Student</div></div>}
-      </div>
     </div>
   );
 }
@@ -216,5 +248,5 @@ function SideNav({ active, onChange, firstName, userData }: { active: Tab; onCha
 function IconHome() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
 function IconReport() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>; }
 function IconSearch() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>; }
-function IconList() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>; }
+function IconList() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>; }
 function IconUser() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>; }
