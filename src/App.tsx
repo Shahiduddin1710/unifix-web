@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { getValidAccessToken, loadUser } from './utils/auth';
+
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import OtpVerification from './pages/OtpVerification';
@@ -17,6 +18,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
     getValidAccessToken().then(token => {
       setAuthed(!!token);
       setChecking(false);
+ 
     });
   }, []);
 

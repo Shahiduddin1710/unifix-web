@@ -78,5 +78,5 @@ export const lostReportsAPI = {
 };
 
 export const masterAPI = {
-  getData: () => get('/master/data'),
+  getData: () => get('/master/all'),
 };

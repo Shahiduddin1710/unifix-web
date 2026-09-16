@@ -23,6 +23,7 @@ export function clearAuthTokens(): void {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('unifix_web_fcm_token');
 }
 
 export function saveUser(user: any): void {

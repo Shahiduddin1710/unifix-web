@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI, complaintsAPI, lostFoundAPI, lostReportsAPI } from '../utils/api';
 import { clearAuthTokens, loadUser, saveUser, getValidAccessToken } from '../utils/auth';
+import { initWebNotifications, cleanupWebNotifications } from '../utils/notifications';
 import BottomNav from '../components/BottomNav';
 import Toast from '../components/Toast';
 import HomeSection from '../sections/HomeSection';
@@ -15,7 +16,12 @@ type LfTab = 'lostreports' | 'feed' | 'lost-history' | 'claims';
 
 export default function Dashboard() {
   const nav = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'complaints' || tab === 'lostfound' || tab === 'home' || tab === 'report' || tab === 'profile') return tab as Tab;
+    return 'home';
+  });
   const [userData, setUserData] = useState<any>(loadUser());
   const [complaints, setComplaints] = useState<any[]>([]);
   const [feedItems, setFeedItems] = useState<any[]>([]);
@@ -67,14 +73,21 @@ export default function Dashboard() {
     } catch {}
     finally { if (!silent) setLfLoading(false); }
   }, [userId]);
-
   useEffect(() => {
     (async () => {
       const token = await getValidAccessToken();
       if (!token) { nav('/login'); return; }
       await fetchProfile();
       await Promise.all([fetchComplaints(), fetchLostFound()]);
+      initWebNotifications(token).catch(() => {});
     })();
+
+    const handleForegroundNotification = (e: Event) => {
+      const { title, body } = (e as CustomEvent).detail;
+      setToast({ message: `${title}: ${body}`, type: 'info' });
+    };
+    window.addEventListener('unifix-foreground-notification', handleForegroundNotification);
+    return () => window.removeEventListener('unifix-foreground-notification', handleForegroundNotification);
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -84,6 +97,10 @@ export default function Dashboard() {
   }, [fetchComplaints, fetchLostFound]);
 
   const handleLogout = useCallback(async () => {
+    try {
+      const token = await getValidAccessToken();
+      if (token) await cleanupWebNotifications(token);
+    } catch {}
     try { await authAPI.logoutAllDevices(); } catch {}
     clearAuthTokens();
     nav('/login');
